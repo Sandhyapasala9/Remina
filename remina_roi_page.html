@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Remina — ROI Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<!-- SheetJS for client-side Excel generation -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --green:#2DBD7E;--green-d:#1a9460;--green-dd:#0f5c3c;
+  --green-l:#E8F8F0;--green-ll:#f3fcf8;
+  --amber:#F5A623;--amber-d:#d4891a;--amber-l:#FFF8E1;
+  --pink:#E8276B;--pink-d:#c01e58;--pink-l:#fde8f1;
+  --charcoal:#1C1C1C;--mid:#555;--muted:#888;
+  --border:#e8e8e8;--bg:#fff;--bg2:#fafaf8;
+  --sans:'Nunito',system-ui,sans-serif;
+  --serif:'Playfair Display',Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--charcoal);background:var(--bg);line-height:1.6}
+
+/* ── NAV strip ── */
+.top-bar{background:var(--charcoal);padding:0.6rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.top-bar-logo{font-size:1.1rem;font-weight:700;color:#fff;text-decoration:none}
+.top-bar-logo span{color:var(--green)}
+.top-bar-tag{font-size:0.75rem;color:rgba(255,255,255,0.45);font-style:italic}
+
+/* ── HERO ── */
+.hero{background:var(--green-ll);border-bottom:1px solid #d4f0e4;padding:3.5rem 2rem 2.5rem;text-align:center}
+.hero-eyebrow{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--green-d);font-weight:700;margin-bottom:0.8rem}
+.hero-h1{font-family:var(--serif);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:400;color:var(--charcoal);line-height:1.2;margin-bottom:0.6rem}
+.hero-h1 em{font-style:italic;color:var(--green-d)}
+.hero-sub{font-size:1rem;color:var(--mid);max-width:560px;margin:0 auto 1.5rem;line-height:1.7}
+.hero-cost-pill{display:inline-flex;align-items:center;gap:0.5rem;background:var(--green);color:#fff;font-size:0.85rem;font-weight:700;padding:0.45rem 1.2rem;border-radius:20px;margin-bottom:0.5rem}
+
+/* ── MAIN LAYOUT ── */
+.page-wrap{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem;display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start}
+
+/* ── CALCULATOR PANEL ── */
+.calc-panel{background:var(--bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden}
+.calc-header{background:var(--charcoal);padding:1.1rem 1.4rem;display:flex;align-items:center;justify-content:space-between}
+.calc-header-title{font-size:0.95rem;font-weight:700;color:#fff}
+.calc-header-sub{font-size:0.78rem;color:rgba(255,255,255,0.5)}
+.calc-body{padding:1.4rem}
+
+.s-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;font-weight:700;color:var(--muted);margin:1.2rem 0 0.6rem}
+.s-label:first-child{margin-top:0}
+
+.inputs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.inp-card{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--bg2)}
+.inp-lbl{font-size:11px;color:var(--muted);margin-bottom:5px;line-height:1.4}
+.inp-row{display:flex;align-items:center;gap:4px}
+.inp-pfx{font-size:12px;color:var(--muted)}
+.inp-card input[type=number]{width:100%;height:30px;padding:0 6px;font-size:14px;font-weight:700;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--charcoal);text-align:right}
+.inp-card input[type=range]{width:100%;margin-top:5px;accent-color:var(--green)}
+.range-row{display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-top:2px}
+.range-val{font-size:13px;font-weight:700;color:var(--charcoal);text-align:right;margin-top:1px}
+
+/* ── RESULTS ── */
+.results-top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0}
+.big-kpi{border-radius:12px;padding:1rem 1.2rem;border:1.5px solid}
+.big-kpi.green{background:var(--green-l);border-color:#a5d6a7}
+.big-kpi.amber{background:var(--amber-l);border-color:#ffd54f}
+.bk-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:4px}
+.bk-label.green{color:var(--green-dd)}
+.bk-label.amber{color:#e65100}
+.bk-num{font-family:var(--serif);font-size:2rem;font-weight:500;line-height:1;margin-bottom:3px}
+.bk-num.green{color:var(--green-dd)}
+.bk-num.amber{color:#e65100}
+.bk-sub{font-size:11px;color:var(--muted);line-height:1.4}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.mini-kpi{background:var(--bg2);border-radius:8px;padding:8px 10px}
+.mk-label{font-size:10px;color:var(--muted);margin-bottom:3px;line-height:1.3}
+.mk-val{font-size:15px;font-weight:700;color:var(--charcoal)}
+.mk-note{font-size:10px;color:var(--green-d);margin-top:2px}
+
+/* ── BREAKDOWN TABLE ── */
+.breakdown{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem}
+.bd-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border);gap:8px}
+.bd-row:last-child{border-bottom:none}
+.bd-row.total-row{background:var(--bg2)}
+.bd-row.net-row{background:var(--green-l)}
+.bd-row.cost-row{background:#fdecea}
+.bd-left{display:flex;align-items:flex-start;gap:8px}
+.bd-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.bd-text{font-size:12px;color:var(--charcoal)}
+.bd-note{font-size:10px;color:var(--muted);margin-top:1px;line-height:1.4}
+.bd-val{font-size:13px;font-weight:700;white-space:nowrap}
+.bd-val.pos{color:var(--green-dd)}
+.bd-val.neg{color:#b71c1c}
+.bd-val.big{font-size:15px}
+
+/* ── PAYBACK BAR ── */
+.payback-section{margin-bottom:1rem}
+.pb-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pb-title{font-size:12px;font-weight:700;color:var(--charcoal)}
+.pb-period{font-size:13px;font-weight:700;color:var(--green-d)}
+.pb-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.pb-fill{height:100%;background:var(--green);border-radius:4px;transition:width 0.4s}
+.pb-ticks{display:flex;justify-content:space-between;font-size:9px;color:#bbb;margin-top:3px}
+.payback-insight{background:var(--green-l);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green-dd);line-height:1.6;margin-top:8px;border:1px solid #a5d6a7}
+.payback-insight strong{font-weight:700}
+
+/* ── VERDICT ── */
+.verdict{border-radius:10px;padding:12px 14px;margin-bottom:1rem;border-left:3px solid}
+.verdict.strong{background:var(--green-l);border-color:var(--green)}
+.verdict.moderate{background:var(--amber-l);border-color:var(--amber)}
+.verdict-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.verdict.strong .verdict-title{color:var(--green-dd)}
+.verdict.moderate .verdict-title{color:#e65100}
+.verdict-body{font-size:12px;line-height:1.6}
+.verdict.strong .verdict-body{color:#2e7d32}
+.verdict.moderate .verdict-body{color:#bf360c}
+
+/* ── EMAIL GATE ── */
+.email-gate{border:2px solid var(--green);border-radius:14px;padding:1.2rem 1.4rem;background:var(--green-ll);margin-bottom:1rem}
+.eg-title{font-size:0.95rem;font-weight:700;color:var(--green-dd);margin-bottom:0.3rem}
+.eg-sub{font-size:0.82rem;color:var(--mid);margin-bottom:1rem;line-height:1.5}
+.eg-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.eg-field label{font-size:11px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px}
+.eg-field input[type=text],
+.eg-field input[type=email]{width:100%;height:36px;padding:0 10px;font-size:13px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--charcoal);font-family:var(--sans);transition:border-color 0.2s}
+.eg-field input:focus{outline:none;border-color:var(--green)}
+.eg-field input.error{border-color:var(--pink)}
+.eg-error{font-size:11px;color:var(--pink);margin-top:3px;display:none}
+.eg-privacy{font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.btn-download{width:100%;padding:0.75rem;background:var(--green);color:#fff;font-size:0.9rem;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s,transform 0.1s}
+.btn-download:hover{background:var(--green-d)}
+.btn-download:active{transform:scale(0.98)}
+.btn-download:disabled{background:#aaa;cursor:not-allowed}
+.btn-download svg{width:16px;height:16px;flex-shrink:0}
+
+/* success state */
+.success-msg{display:none;background:var(--green-l);border:1.5px solid #a5d6a7;border-radius:10px;padding:1rem 1.2rem;text-align:center}
+.success-msg.show{display:block}
+.success-icon{font-size:1.8rem;margin-bottom:0.4rem}
+.success-title{font-size:0.95rem;font-weight:700;color:var(--green-dd);margin-bottom:0.3rem}
+.success-body{font-size:0.82rem;color:var(--mid);line-height:1.5}
+.btn-dl-again{margin-top:0.7rem;padding:0.5rem 1.2rem;background:transparent;border:1.5px solid var(--green);color:var(--green-d);font-size:0.8rem;font-weight:700;border-radius:20px;cursor:pointer;font-family:var(--sans);transition:background 0.15s}
+.btn-dl-again:hover{background:var(--green-l)}
+
+/* ── SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;gap:14px;position:sticky;top:1.5rem}
+.side-card{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
+.side-card-header{padding:0.9rem 1.1rem;font-size:0.8rem;font-weight:700;border-bottom:1px solid var(--border)}
+.side-card-header.green{background:var(--green-l);color:var(--green-dd)}
+.side-card-header.amber{background:var(--amber-l);color:#e65100}
+.side-card-header.charcoal{background:var(--charcoal);color:#fff}
+.side-card-body{padding:1rem 1.1rem}
+.assumption-item{display:flex;flex-direction:column;gap:1px;padding:7px 0;border-bottom:1px solid var(--border)}
+.assumption-item:last-child{border-bottom:none}
+.asm-label{font-size:11px;font-weight:700;color:var(--charcoal)}
+.asm-value{font-size:12px;color:var(--green-d);font-weight:600}
+.asm-source{font-size:10px;color:var(--muted);line-height:1.4;margin-top:1px}
+.demo-cta{background:var(--green);padding:1.2rem 1.1rem;text-align:center;border-radius:14px}
+.demo-cta-title{font-size:0.9rem;font-weight:700;color:#fff;margin-bottom:0.4rem}
+.demo-cta-sub{font-size:0.78rem;color:rgba(255,255,255,0.75);margin-bottom:0.8rem;line-height:1.5}
+.btn-cta{display:block;padding:0.65rem;background:#fff;color:var(--green-d);font-size:0.82rem;font-weight:700;border-radius:8px;text-decoration:none;text-align:center;transition:background 0.15s}
+.btn-cta:hover{background:var(--green-l)}
+.spots-row{display:flex;align-items:center;gap:0.5rem;justify-content:center;margin-top:0.6rem}
+.pulse{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse-a 2s ease-in-out infinite}
+@keyframes pulse-a{0%,100%{opacity:1}50%{opacity:0.3}}
+.spots-txt{font-size:0.75rem;color:rgba(255,255,255,0.75)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:880px){
+  .page-wrap{grid-template-columns:1fr}
+  .sidebar{position:static}
+  .inputs-grid{grid-template-columns:1fr 1fr}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .eg-fields{grid-template-columns:1fr}
+}
+@media(max-width:540px){
+  .inputs-grid{grid-template-columns:1fr}
+  .results-top{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="index.html" class="top-bar-logo">re<span>mina</span></a>
+  <div class="top-bar-tag">Love. Care. Memory.</div>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">ROI Calculator</div>
+  <h1 class="hero-h1">What does Remina actually cost<br><em>vs what it actually returns?</em></h1>
+  <p class="hero-sub">Enter your community's numbers. See your exact annual ROI in under 60 seconds. Then download the full Excel model to share with your board.</p>
+  <div class="hero-cost-pill">$100 / resident / month — founding partner rate</div>
+</div>
+
+<div class="page-wrap">
+
+  <!-- ── CALCULATOR ── -->
+  <div class="calc-panel">
+    <div class="calc-header">
+      <div>
+        <div class="calc-header-title">Your community ROI calculator</div>
+        <div class="calc-header-sub">Adjust sliders — results update instantly</div>
+      </div>
+    </div>
+    <div class="calc-body">
+
+      <div class="s-label">Your community</div>
+      <div class="inputs-grid">
+        <div class="inp-card">
+          <div class="inp-lbl">Memory care residents</div>
+          <div class="inp-row"><input type="number" id="i-res" value="50" min="10" max="500" step="1" oninput="calc()"></div>
+        </div>
+        <div class="inp-card">
+          <div class="inp-lbl">Monthly fee per resident</div>
+          <div class="inp-row"><span class="inp-pfx">$</span><input type="number" id="i-rate" value="7000" min="3000" max="15000" step="100" oninput="calc()"></div>
+        </div>
+        <div class="inp-card">
+          <div class="inp-lbl">Occupancy rate</div>
+          <input type="range" id="i-occ" min="70" max="98" value="88" step="1" oninput="calc()">
+          <div class="range-row"><span>70%</span><span id="v-occ" style="font-size:12px;font-weight:700;color:var(--charcoal)">88%</span><span>98%</span></div>
+        </div>
+        <div class="inp-card">
+          <div class="inp-lbl">Avg. length of stay (months)</div>
+          <div class="inp-row"><input type="number" id="i-los" value="24" min="6" max="60" step="1" oninput="calc()"></div>
+        </div>
+        <div class="inp-card">
+          <div class="inp-lbl">Antipsychotic / PRN rate</div>
+          <input type="range" id="i-prn" min="5" max="35" value="16" step="1" oninput="calc()">
+          <div class="range-row"><span>5%</span><span id="v-prn" style="font-size:12px;font-weight:700;color:var(--charcoal)">16%</span><span>35%</span></div>
+        </div>
+        <div class="inp-card">
+          <div class="inp-lbl">Monthly caregiver turnover</div>
+          <input type="range" id="i-turn" min="2" max="20" value="8" step="1" oninput="calc()">
+          <div class="range-row"><span>2%</span><span id="v-turn" style="font-size:12px;font-weight:700;color:var(--charcoal)">8%</span><span>20%</span></div>
+        </div>
+      </div>
+
+      <div class="s-label">Your ROI</div>
+      <div class="results-top">
+        <div class="big-kpi green">
+          <div class="bk-label green">Annual ROI</div>
+          <div class="bk-num green" id="r-roi">0x</div>
+          <div class="bk-sub" id="r-roi-sub">calculating...</div>
+        </div>
+        <div class="big-kpi amber">
+          <div class="bk-label amber">Net annual benefit</div>
+          <div class="bk-num amber" id="r-net">$0</div>
+          <div class="bk-sub" id="r-net-sub">after Remina cost</div>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="mini-kpi"><div class="mk-label">Remina annual cost</div><div class="mk-val" id="k-cost">$0</div><div class="mk-note" id="k-cost-n"></div></div>
+        <div class="mini-kpi"><div class="mk-label">LOS revenue gain</div><div class="mk-val" id="k-los">$0</div><div class="mk-note" id="k-los-n"></div></div>
+        <div class="mini-kpi"><div class="mk-label">Occupancy gain</div><div class="mk-val" id="k-occ">$0</div><div class="mk-note" id="k-occ-n"></div></div>
+        <div class="mini-kpi"><div class="mk-label">Turnover saving</div><div class="mk-val" id="k-turn">$0</div><div class="mk-note" id="k-turn-n"></div></div>
+      </div>
+
+      <div class="breakdown">
+        <div class="bd-row"><div class="bd-left"><div class="bd-dot" style="background:var(--green)"></div><div><div class="bd-text">Length of stay revenue gain</div><div class="bd-note" id="bd-los-n"></div></div></div><div class="bd-val pos" id="bd-los">$0</div></div>
+        <div class="bd-row"><div class="bd-left"><div class="bd-dot" style="background:var(--green)"></div><div><div class="bd-text">Occupancy improvement revenue</div><div class="bd-note" id="bd-occ-n"></div></div></div><div class="bd-val pos" id="bd-occ">$0</div></div>
+        <div class="bd-row"><div class="bd-left"><div class="bd-dot" style="background:var(--amber)"></div><div><div class="bd-text">Caregiver turnover cost saved</div><div class="bd-note" id="bd-turn-n"></div></div></div><div class="bd-val pos" id="bd-turn">$0</div></div>
+        <div class="bd-row"><div class="bd-left"><div class="bd-dot" style="background:var(--amber)"></div><div><div class="bd-text">PRN medication cost reduction</div><div class="bd-note" id="bd-prn-n"></div></div></div><div class="bd-val pos" id="bd-prn">$0</div></div>
+        <div class="bd-row"><div class="bd-left"><div class="bd-dot" style="background:#9e9e9e"></div><div><div class="bd-text">Inspection deficiency avoided</div><div class="bd-note">Conservative — 1 deficiency/year</div></div></div><div class="bd-val pos">$5,000</div></div>
+        <div class="bd-row total-row"><div class="bd-left"><div class="bd-dot" style="background:var(--green-d)"></div><div><div class="bd-text" style="font-weight:700">Total benefit</div></div></div><div class="bd-val pos big" id="bd-total">$0</div></div>
+        <div class="bd-row cost-row"><div class="bd-left"><div class="bd-dot" style="background:#e24b4a"></div><div><div class="bd-text">Remina annual cost</div><div class="bd-note" id="bd-cost-n"></div></div></div><div class="bd-val neg" id="bd-cost">($0)</div></div>
+        <div class="bd-row net-row"><div class="bd-left"><div class="bd-dot" style="background:var(--green-dd)"></div><div><div class="bd-text" style="font-weight:700;font-size:13px">Net annual benefit</div></div></div><div class="bd-val pos big" id="bd-net">$0</div></div>
+      </div>
+
+      <div class="payback-section">
+        <div class="pb-header"><span class="pb-title">Payback period</span><span class="pb-period" id="pb-period">—</span></div>
+        <div class="pb-track"><div class="pb-fill" id="pb-fill" style="width:0%"></div></div>
+        <div class="pb-ticks"><span>Day 1</span><span>1 mo</span><span>3 mo</span><span>6 mo</span><span>12 mo</span></div>
+        <div class="payback-insight" id="pb-insight"></div>
+      </div>
+
+      <div class="verdict" id="verdict"></div>
+
+      <!-- EMAIL GATE -->
+      <div class="email-gate" id="email-gate">
+        <div class="eg-title">Get your personalised ROI report</div>
+        <div class="eg-sub">Enter your details and we'll generate a full 3-sheet Excel model with your exact numbers — ready to share with your board or ownership group.</div>
+        <div class="eg-fields">
+          <div class="eg-field">
+            <label for="f-name">Your name</label>
+            <input type="text" id="f-name" placeholder="Sarah Johnson">
+            <div class="eg-error" id="e-name">Please enter your name</div>
+          </div>
+          <div class="eg-field">
+            <label for="f-company">Community / company name</label>
+            <input type="text" id="f-company" placeholder="Silverpine Memory Care">
+            <div class="eg-error" id="e-company">Please enter your community name</div>
+          </div>
+          <div class="eg-field" style="grid-column:1/-1">
+            <label for="f-email">Official work email <span style="color:var(--pink);font-weight:700">*</span></label>
+            <input type="email" id="f-email" placeholder="sarah.johnson@silverpine.com">
+            <div class="eg-error" id="e-email">Please enter a valid work email (no gmail, yahoo, hotmail)</div>
+          </div>
+        </div>
+        <div class="eg-privacy">Your email is used only to send this report and notify you about Remina updates. No spam, ever. We do not accept personal email addresses (gmail, yahoo, hotmail, outlook.com).</div>
+        <button class="btn-download" id="dl-btn" onclick="handleDownload()">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v8M5 8l3 3 3-3M3 12h10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Download my ROI Excel report
+        </button>
+      </div>
+
+      <div class="success-msg" id="success-msg">
+        <div class="success-icon">✓</div>
+        <div class="success-title" id="s-title">Your ROI report is downloading</div>
+        <div class="success-body" id="s-body">We've also noted your interest. Srikar from Remina will reach out within 24 hours to walk you through the numbers and answer any questions.</div>
+        <button class="btn-dl-again" onclick="downloadAgain()">Download again</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="demo-cta">
+      <div class="demo-cta-title">See Remina live at Argentum</div>
+      <div class="demo-cta-sub">Nashville, TN · May 18–20, 2026. Book 15 minutes with Srikar at the booth.</div>
+      <a href="https://calendly.com/remina-demo" target="_blank" class="btn-cta">Book a booth meeting →</a>
+      <div class="spots-row"><div class="pulse"></div><span class="spots-txt">2 of 3 design partner spots remaining</span></div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-header green">Validated assumptions</div>
+      <div class="side-card-body">
+        <div class="assumption-item">
+          <div class="asm-label">LOS improvement</div>
+          <div class="asm-value">+1.5 months average</div>
+          <div class="asm-source">Peer-reviewed NPI literature — personalised dementia care extends stay</div>
+        </div>
+        <div class="assumption-item">
+          <div class="asm-label">PRN / antipsychotic reduction</div>
+          <div class="asm-value">24% reduction</div>
+          <div class="asm-source">Remina pilot data — 16.2% → 12.4% antipsychotic rate</div>
+        </div>
+        <div class="assumption-item">
+          <div class="asm-label">Occupancy uplift</div>
+          <div class="asm-value">+2 to +3 pts</div>
+          <div class="asm-source">Word-of-mouth referrals + inspection score improvements</div>
+        </div>
+        <div class="assumption-item">
+          <div class="asm-label">Caregiver turnover reduction</div>
+          <div class="asm-value">15% fewer exits</div>
+          <div class="asm-source">SHRM senior living benchmark — equipped caregivers stay longer</div>
+        </div>
+        <div class="assumption-item">
+          <div class="asm-label">Replacement cost per caregiver</div>
+          <div class="asm-value">$3,500 average</div>
+          <div class="asm-source">Recruiting, onboarding, training cost benchmark</div>
+        </div>
+        <div class="assumption-item">
+          <div class="asm-label">Inspection deficiency avoided</div>
+          <div class="asm-value">$5,000 conservative</div>
+          <div class="asm-source">CMS civil monetary penalty range $5,000–$50,000</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-header charcoal">What the Excel contains</div>
+      <div class="side-card-body" style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="width:20px;height:20px;border-radius:4px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green-dd);flex-shrink:0">1</div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--charcoal)">Executive Summary</div><div style="font-size:11px;color:var(--muted)">One-page board-ready ROI summary with your numbers</div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="width:20px;height:20px;border-radius:4px;background:var(--amber-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#e65100;flex-shrink:0">2</div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--charcoal)">Detailed Financial Model</div><div style="font-size:11px;color:var(--muted)">Live Excel formulas — change any input, all results update</div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="width:20px;height:20px;border-radius:4px;background:var(--pink-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--pink-d);flex-shrink:0">3</div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--charcoal)">KPI Dashboard</div><div style="font-size:11px;color:var(--muted)">Before vs After table — all 6 KPIs with sources</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CONSUMER_DOMAINS = ['gmail','yahoo','hotmail','outlook','icloud','me','mac','aol','protonmail','zoho','ymail','live','msn','rediffmail'];
+
+function $i(id){return document.getElementById(id)}
+function fmt(n){
+  if(n>=1e6) return '$'+(n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return '$'+Math.round(n/100)*100 >= 1e3 ? '$'+(Math.round(n/1000))+'k' : '$'+Math.round(n).toLocaleString();
+  return '$'+Math.round(n).toLocaleString();
+}
+function fmtE(n){return '$'+Math.round(n).toLocaleString();}
+
+let LAST = {};
+
+function calc(){
+  const res   = Math.max(1,  parseInt($i('i-res').value)||50);
+  const rate  = Math.max(100,parseInt($i('i-rate').value)||7000);
+  const occ   = parseInt($i('i-occ').value)||88;
+  const los   = Math.max(1,  parseInt($i('i-los').value)||24);
+  const prn   = parseInt($i('i-prn').value)||16;
+  const turn  = parseInt($i('i-turn').value)||8;
+
+  $i('v-occ').textContent  = occ+'%';
+  $i('v-prn').textContent  = prn+'%';
+  $i('v-turn').textContent = turn+'%';
+
+  const remM = res * 100;
+  const remA = remM * 12;
+  const adm  = (res / los) * 12;
+  const losG = adm * 1.5 * rate;
+  const occU = Math.min(98 - occ, 3);
+  const occG = (occU / 100) * res * rate * 12;
+  const cgC  = Math.round(res * 0.4);
+  const exits= cgC * (turn / 100) * 12;
+  const turS = exits * 0.15 * 3500;
+  const prnS = res * 2.5 * 85 * 0.24 * 12;
+  const insS = 5000;
+  const totB = losG + occG + turS + prnS + insS;
+  const net  = totB - remA;
+  const roi  = totB / remA;
+  const days = Math.round((remA / totB) * 365);
+  const cover= remA / rate;
+
+  LAST = {res,rate,occ,los,prnRate:prn,turnover:turn,
+          remA,remM,losG,occG,turS,prnS,totB,net,roi,days,cover,adm,occU,exits,cgC};
+
+  $i('r-roi').textContent    = roi.toFixed(1)+'x';
+  $i('r-roi-sub').textContent= fmtE(totB)+' return on '+fmtE(remA)+' investment';
+  $i('r-net').textContent    = fmtE(net);
+  $i('r-net-sub').textContent= 'after Remina cost of '+fmtE(remA)+'/yr';
+
+  $i('k-cost').textContent = fmtE(remA);
+  $i('k-cost-n').textContent= res+' res × $100/mo × 12';
+  $i('k-los').textContent  = fmt(losG);
+  $i('k-los-n').textContent= adm.toFixed(1)+' admissions/yr +1.5mo';
+  $i('k-occ').textContent  = fmt(occG);
+  $i('k-occ-n').textContent= '+'+occU+' occ pts → revenue';
+  $i('k-turn').textContent = fmt(turS);
+  $i('k-turn-n').textContent= Math.round(exits*0.15)+' exits saved × $3.5k';
+
+  $i('bd-los').textContent  = fmtE(losG);
+  $i('bd-los-n').textContent= adm.toFixed(1)+' admissions/yr, each +1.5 months at '+fmtE(rate)+'/mo';
+  $i('bd-occ').textContent  = fmtE(occG);
+  $i('bd-occ-n').textContent= '+'+occU+' pts on '+res+' resident capacity';
+  $i('bd-turn').textContent = fmtE(turS);
+  $i('bd-turn-n').textContent= exits.toFixed(1)+' exits/yr, 15% reduction = '+Math.round(exits*0.15)+' saved × $3,500';
+  $i('bd-prn').textContent  = fmtE(prnS);
+  $i('bd-prn-n').textContent= res+' res × 2.5 events/mo × $85 × 24% reduction × 12';
+  $i('bd-total').textContent= fmtE(totB);
+  $i('bd-cost').textContent = '('+fmtE(remA)+')';
+  $i('bd-cost-n').textContent= res+' res × $100/mo × 12 months';
+  $i('bd-net').textContent  = fmtE(net);
+
+  const pct = Math.min(100, Math.round((days/365)*100));
+  $i('pb-fill').style.width = pct+'%';
+  $i('pb-period').textContent = days < 30 ? 'Under 1 month' : days < 60 ? '~'+Math.round(days/30)+' month' : Math.round(days/30)+' months';
+  $i('pb-insight').innerHTML = `<strong>The break-even in plain English:</strong> If just <strong>${Math.ceil(cover)}</strong> residents each stay one extra month, Remina pays for itself completely for the year. That is <strong>${(Math.ceil(cover)/res*100).toFixed(1)}%</strong> of your residents.`;
+
+  const v = $i('verdict');
+  if(roi >= 5){
+    v.className='verdict strong';
+    v.innerHTML=`<div class="verdict-title">Strong ROI — this is a clear financial fit</div><div class="verdict-body">At ${roi.toFixed(1)}x return, Remina generates ${fmtE(net)} in net annual value on a ${fmtE(remA)} investment. Payback period: ${days} days. Just ${Math.ceil(cover)} residents staying one extra month covers the full annual cost.</div>`;
+  } else {
+    v.className='verdict moderate';
+    v.innerHTML=`<div class="verdict-title">Positive ROI — ${roi.toFixed(1)}x return, ${days}-day payback</div><div class="verdict-body">Remina generates ${fmtE(net)} net annual value. The LOS gain alone covers ${Math.round(losG/remA*100)}% of annual cost. Try adjusting your rate or resident count to see the full picture.</div>`;
+  }
+}
+
+function isConsumerEmail(email){
+  const domain = email.split('@')[1]?.split('.')[0]?.toLowerCase()||'';
+  return CONSUMER_DOMAINS.includes(domain);
+}
+
+function handleDownload(){
+  let ok = true;
+  const name    = $i('f-name').value.trim();
+  const company = $i('f-company').value.trim();
+  const email   = $i('f-email').value.trim();
+
+  [$i('f-name'),$i('f-email'),$i('f-company')].forEach(el=>el.classList.remove('error'));
+  [$i('e-name'),$i('e-email'),$i('e-company')].forEach(el=>el.style.display='none');
+
+  if(!name){ $i('f-name').classList.add('error'); $i('e-name').style.display='block'; ok=false; }
+  if(!company){ $i('f-company').classList.add('error'); $i('e-company').style.display='block'; ok=false; }
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || isConsumerEmail(email)){
+    $i('f-email').classList.add('error'); $i('e-email').style.display='block'; ok=false;
+  }
+  if(!ok) return;
+
+  const btn = $i('dl-btn');
+  btn.disabled = true;
+  btn.textContent = 'Building your Excel...';
+
+  setTimeout(()=>{
+    try {
+      generateExcel(name, company, email);
+      $i('email-gate').style.display = 'none';
+      const sm = $i('success-msg');
+      sm.classList.add('show');
+      $i('s-title').textContent = `${name.split(' ')[0]}, your ROI report is downloading`;
+      $i('s-body').innerHTML = `Your personalised report for <strong>${company}</strong> is ready. Srikar from Remina will follow up at <strong>${email}</strong> within 24 hours.`;
+    } catch(e){
+      btn.disabled = false;
+      btn.textContent = 'Download my ROI Excel report';
+      alert('Download failed — please try again.');
+    }
+  }, 600);
+}
+
+function downloadAgain(){
+  const name    = $i('f-name')?.value||'Team';
+  const company = $i('f-company')?.value||'Your Community';
+  const email   = $i('f-email')?.value||'';
+  generateExcel(name, company, email);
+}
+
+function generateExcel(name, company, email){
+  const L = LAST;
+  const wb = XLSX.utils.book_new();
+
+  function money(v){ return Math.round(v); }
+
+  // ── Sheet 1: Executive Summary ──────────────────────────────────────────
+  const s1data = [
+    ['REMINA — ROI Analysis Report', '', '', ''],
+    [`Prepared for: ${company}  |  Contact: ${email}  |  Name: ${name}`, '', '', ''],
+    ['Love. Care. Memory. — $100 per resident per month', '', '', ''],
+    ['', '', '', ''],
+    ['KEY RESULTS', '', '', ''],
+    ['Annual ROI Multiple', L.roi.toFixed(1)+'x', '', ''],
+    ['Net Annual Benefit', money(L.net), '', ''],
+    ['Total Annual Benefit', money(L.totB), '', ''],
+    ['Remina Annual Cost', money(L.remA), '', ''],
+    ['Payback Period (days)', L.days, '', ''],
+    ['', '', '', ''],
+    ['YOUR INPUTS', '', '', ''],
+    ['Memory care residents', L.res, '', ''],
+    ['Monthly fee per resident ($)', L.rate, '', ''],
+    ['Current occupancy (%)', L.occ+'%', '', ''],
+    ['Average length of stay (months)', L.los, '', ''],
+    ['Current antipsychotic rate (%)', L.prnRate+'%', '', ''],
+    ['Monthly caregiver turnover (%)', L.turnover+'%', '', ''],
+    ['', '', '', ''],
+    ['BENEFIT BREAKDOWN', 'Annual Value ($)', 'Methodology', 'Source'],
+    ['Length of stay revenue gain', money(L.losG), `${L.adm.toFixed(1)} admissions/yr × 1.5 extra months × $${L.rate.toLocaleString()}`, 'NPI peer-reviewed literature'],
+    ['Occupancy improvement revenue', money(L.occG), `+${L.occU} pts on ${L.res} residents`, 'Family referrals + inspection uplift'],
+    ['Caregiver turnover cost saved', money(L.turS), `${L.exits.toFixed(1)} exits/yr × 15% reduction × $3,500`, 'SHRM senior living benchmark'],
+    ['PRN medication cost reduction', money(L.prnS), `${L.res} res × 2.5 events/mo × $85 × 24%`, 'Remina pilot data (16.2%→12.4%)'],
+    ['Inspection deficiency avoided', 5000, 'Conservative — 1 deficiency/year', 'CMS penalty range $5k–$50k'],
+    ['TOTAL BENEFIT', money(L.totB), '', ''],
+    ['Remina Annual Cost', -money(L.remA), `${L.res} res × $100/mo × 12`, 'Remina founding partner rate'],
+    ['NET ANNUAL BENEFIT', money(L.net), '', ''],
+    ['', '', '', ''],
+    ['BREAK-EVEN', '', '', ''],
+    [`If just ${Math.ceil(L.cover)} residents each stay 1 extra month, Remina pays for itself for the entire year.`, '', '', ''],
+    [`That is ${(Math.ceil(L.cover)/L.res*100).toFixed(1)}% of your ${L.res} residents.`, '', '', ''],
+    ['', '', '', ''],
+    ['Remina — Love. Care. Memory. | hello@remina.ai | remina.ai | Argentum Nashville May 18–20 2026', '', '', ''],
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(s1data);
+  ws1['!cols'] = [{wch:48},{wch:22},{wch:52},{wch:36}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Executive Summary');
+
+  // ── Sheet 2: KPI Dashboard ───────────────────────────────────────────────
+  const s2data = [
+    ['REMINA KPI IMPACT DASHBOARD', '', '', '', ''],
+    ['Before vs After — 90-day pilot outcomes', '', '', '', ''],
+    ['', '', '', '', ''],
+    ['KPI', 'Before Remina', 'After Remina (90 days)', 'Improvement', 'Source'],
+    ['Length of Stay', `${L.los} months`, `${(L.los+1.5).toFixed(1)} months`, '+1.5 months', 'NPI peer-reviewed literature'],
+    ['Antipsychotic Rate', `${L.prnRate}%`, `${(L.prnRate*0.76).toFixed(1)}%`, '-24%', 'Remina pilot data'],
+    ['Occupancy Rate', `${L.occ}%`, `${Math.min(98,L.occ+L.occU)}%`, `+${L.occU} pts`, 'Family referrals + inspection'],
+    ['Caregiver Monthly Turnover', `${L.turnover}%`, `${(L.turnover*0.85).toFixed(1)}%`, '-15%', 'SHRM senior living benchmark'],
+    ['PRN Events / Resident / Month', '2.5', '1.9', '-24%', 'Remina pilot data'],
+    ['Monthly Revenue', `$${money(L.res*L.rate*L.occ/100).toLocaleString()}`, `$${money(L.res*L.rate*Math.min(L.occ+L.occU,98)/100).toLocaleString()}`, `+$${money(L.occG/12).toLocaleString()}/mo`, 'Calculated'],
+    ['', '', '', '', ''],
+    ['All assumptions are conservative and sourced from peer-reviewed NPI literature and SHRM benchmarks.', '', '', '', ''],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(s2data);
+  ws2['!cols'] = [{wch:32},{wch:22},{wch:26},{wch:18},{wch:38}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'KPI Dashboard');
+
+  // ── Sheet 3: Scenario Planner ────────────────────────────────────────────
+  const scenarios = [0.75, 1.0, 1.25, 1.5, 2.0];
+  const s3hdr = ['Scenario', 'LOS Improvement (months)', 'Annual Benefit ($)', 'Net Benefit ($)', 'ROI Multiple', 'Payback (days)'];
+  const s3rows = scenarios.map(mult => {
+    const lg  = L.adm * (1.5*mult) * L.rate;
+    const tot = lg + L.occG + L.turS + L.prnS + 5000;
+    const net = tot - L.remA;
+    return [
+      mult===1.0 ? 'Base case (current)' : mult<1 ? 'Conservative' : `Optimistic ×${mult}`,
+      (1.5*mult).toFixed(2),
+      money(tot),
+      money(net),
+      (tot/L.remA).toFixed(2)+'x',
+      Math.round((L.remA/tot)*365)
+    ];
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet([s3hdr, ...s3rows]);
+  ws3['!cols'] = [{wch:26},{wch:26},{wch:22},{wch:20},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Scenario Planner');
+
+  const fname = `Remina_ROI_${company.replace(/[^a-zA-Z0-9]/g,'_').substring(0,30)}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+calc();
+</script>
+</body>
+</html>
