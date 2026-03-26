@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Remina — ROI Calculator</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -47,6 +48,7 @@ nav.scrolled {
   transition: color 0.2s;
 }
 .nav-links a:hover { color: var(--charcoal); }
+.nav-links a.active { color: var(--green); font-weight: 600; }
 .btn-demo {
   background: var(--green);
   color: white;
@@ -246,13 +248,14 @@ footer {
 <body>
 
 <nav id="nav">
-  <a href="index.html" style="text-decoration:none;display:flex;align-items:center;">
-    <img src="reminalogo.jpeg" alt="Remina" class="logo-svg" style="object-fit:contain;">
+  <a href="index.html" style="text-decoration:none;display:flex;align-items:center;gap:0.6rem">
+    <img src="remina-logo.png" alt="Remina Logo" class="logo-svg">
   </a>
   <div class="nav-links">
     <a href="index.html#how">How it works</a>
     <a href="index.html#roles">For your team</a>
     <a href="index.html#partner">Design partner</a>
+    <a href="remina_roi_page.html" class="active">ROI</a>
     <a href="index.html#partner" class="btn-demo">Book a demo</a>
   </div>
 </nav>
@@ -880,38 +883,12 @@ calc();
 <!-- FOOTER -->
 <footer>
   <div>
-    <svg class="logo-svg-sm" viewBox="0 0 140 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g transform="translate(12,5)">
-        <path d="M18 6 Q21 2 24 6" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-        <path d="M26 10 Q31 8 30 14" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-        <path d="M27 20 Q32 22 28 26" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-        <path d="M18 28 Q20 33 14 32" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-        <path d="M8 26 Q4 29 4 24" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-        <path d="M5 16 Q0 14 3 10" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-        <path d="M8 6 Q6 2 10 3" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-        <line x1="16" y1="4" x2="16" y2="8" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="24" y1="7" x2="22" y2="11" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="28" y1="15" x2="24" y2="16" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="24" y1="24" x2="21" y2="21" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="16" y1="28" x2="16" y2="24" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="8" y1="24" x2="11" y2="21" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="4" y1="15" x2="8" y2="16" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="8" y1="7" x2="10" y2="11" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="16" cy="16" r="4.5" fill="#E8276B"/>
-        <line x1="16" y1="20.5" x2="16" y2="34" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
-      </g>
-      <text x="52" y="38" font-family="'Nunito',sans-serif" font-size="22" font-weight="700" fill="rgba(255,255,255,0.8)" letter-spacing="-0.5">REMINA</text>
-      <text x="52" y="52" font-family="'Nunito',sans-serif" font-size="9" font-weight="600">
-        <tspan fill="#2DBD7E">Love.</tspan>
-        <tspan fill="#F5A623"> Care.</tspan>
-        <tspan fill="#E8276B"> Memory.</tspan>
-      </text>
-    </svg>
+    <img src="remina-logo.png" alt="Remina Logo" class="logo-svg-sm">
   </div>
   <div class="footer-links">
-    <a href="https://linkedin.com/company/remina" target="_blank">LinkedIn</a>
+    <a href="https://www.linkedin.com/company/remina-care/" target="_blank">LinkedIn</a>
     <a href="https://www.instagram.com/remina_care?igsh=MWlnMnFscDl5M3cxZQ==" target="_blank">Instagram</a>
-    <a href="mailto:hello@remina.ai" class="highlight">hello@remina.ai</a>
+    <a href="mailto:srikar@remina.care" class="highlight">srikar@remina.care</a>
     <a href="https://calendly.com/remina-demo" target="_blank" class="highlight">Book a demo</a>
   </div>
 </footer>
