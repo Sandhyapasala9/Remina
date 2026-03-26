@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <!-- SheetJS for client-side Excel generation -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 :root{
   --green:#2DBD7E;--green-d:#1a9460;--green-dd:#0f5c3c;
@@ -19,18 +19,50 @@
   --border:#e8e8e8;--bg:#fff;--bg2:#fafaf8;
   --sans:'Nunito',system-ui,sans-serif;
   --serif:'Playfair Display',Georgia,serif;
+  --green-dark:#1a9460;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--sans);color:var(--charcoal);background:var(--bg);line-height:1.6}
 
-/* ── NAV strip ── */
-.top-bar{background:var(--charcoal);padding:0.6rem 2rem;display:flex;align-items:center;justify-content:space-between}
-.top-bar-logo{font-size:1.1rem;font-weight:700;color:#fff;text-decoration:none}
-.top-bar-logo span{color:var(--green)}
-.top-bar-tag{font-size:0.75rem;color:rgba(255,255,255,0.45);font-style:italic}
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 3rem;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+nav.scrolled {
+  border-color: var(--border);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+}
+.nav-links { display: flex; align-items: center; gap: 2rem; }
+.nav-links a {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--mid);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--charcoal); }
+.btn-demo {
+  background: var(--green);
+  color: white;
+  padding: 0.6rem 1.5rem;
+  border-radius: 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  display: inline-block;
+}
+.btn-demo:hover { background: var(--green-dark); transform: translateY(-1px); }
+.logo-svg { height: 44px; width: auto; display: block; }
 
 /* ── HERO ── */
-.hero{background:var(--green-ll);border-bottom:1px solid #d4f0e4;padding:3.5rem 2rem 2.5rem;text-align:center}
+.hero{background:var(--green-ll);border-bottom:1px solid #d4f0e4;padding:6rem 2rem 2.5rem;text-align:center}
 .hero-eyebrow{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.16em;color:var(--green-d);font-weight:700;margin-bottom:0.8rem}
 .hero-h1{font-family:var(--serif);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:400;color:var(--charcoal);line-height:1.2;margin-bottom:0.6rem}
 .hero-h1 em{font-style:italic;color:var(--green-d)}
@@ -179,14 +211,51 @@ body{font-family:var(--sans);color:var(--charcoal);background:var(--bg);line-hei
   .inputs-grid{grid-template-columns:1fr}
   .results-top{grid-template-columns:1fr}
 }
+
+/* ── FOOTER ── */
+footer {
+  background: #111;
+  padding: 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 2rem;
+}
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.footer-links a {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--green); }
+.footer-links a.highlight { color: var(--green); }
+@media(max-width:640px){
+  footer { grid-template-columns: 1fr; }
+  .footer-links { justify-content: flex-start; }
+}
+.logo-svg-sm { height: 36px; }
 </style>
 </head>
 <body>
 
-<div class="top-bar">
-  <a href="index.html" class="top-bar-logo">re<span>mina</span></a>
-  <div class="top-bar-tag">Love. Care. Memory.</div>
-</div>
+<nav id="nav">
+  <a href="index.html" style="text-decoration:none;display:flex;align-items:center;">
+    <img src="reminalogo.jpeg" alt="Remina" class="logo-svg" style="object-fit:contain;">
+  </a>
+  <div class="nav-links">
+    <a href="index.html#how">How it works</a>
+    <a href="index.html#roles">For your team</a>
+    <a href="index.html#partner">Design partner</a>
+    <a href="index.html#partner" class="btn-demo">Book a demo</a>
+  </div>
+</nav>
 
 <div class="hero">
   <div class="hero-eyebrow">ROI Calculator</div>
@@ -286,17 +355,17 @@ body{font-family:var(--sans);color:var(--charcoal);background:var(--bg);line-hei
         <div class="eg-fields">
           <div class="eg-field">
             <label for="f-name">Your name</label>
-            <input type="text" id="f-name" placeholder="Sarah Johnson">
+            <input type="text" id="f-name" placeholder="Sarah Johnson" oninput="clearFieldError('f-name','e-name')">
             <div class="eg-error" id="e-name">Please enter your name</div>
           </div>
           <div class="eg-field">
             <label for="f-company">Community / company name</label>
-            <input type="text" id="f-company" placeholder="Silverpine Memory Care">
+            <input type="text" id="f-company" placeholder="Silverpine Memory Care" oninput="clearFieldError('f-company','e-company')">
             <div class="eg-error" id="e-company">Please enter your community name</div>
           </div>
           <div class="eg-field" style="grid-column:1/-1">
             <label for="f-email">Official work email <span style="color:var(--pink);font-weight:700">*</span></label>
-            <input type="email" id="f-email" placeholder="sarah.johnson@silverpine.com">
+            <input type="email" id="f-email" placeholder="sarah.johnson@silverpine.com" oninput="validateEmailField()">
             <div class="eg-error" id="e-email">Please enter a valid work email (no gmail, yahoo, hotmail)</div>
           </div>
         </div>
@@ -475,6 +544,23 @@ function isConsumerEmail(email){
   return CONSUMER_DOMAINS.includes(domain);
 }
 
+function clearFieldError(fieldId, errorId){
+  const field = $i(fieldId);
+  if(field.value.trim()){
+    field.classList.remove('error');
+    $i(errorId).style.display='none';
+  }
+}
+
+function validateEmailField(){
+  const field = $i('f-email');
+  const email = field.value.trim();
+  if(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !isConsumerEmail(email)){
+    field.classList.remove('error');
+    $i('e-email').style.display='none';
+  }
+}
+
 function handleDownload(){
   let ok = true;
   const name    = $i('f-name').value.trim();
@@ -522,93 +608,319 @@ function generateExcel(name, company, email){
   const L = LAST;
   const wb = XLSX.utils.book_new();
 
-  function money(v){ return Math.round(v); }
+  // ── style helpers ───────────────────────────────────────────
+  const money = v => Math.round(v);
+  const fill  = rgb => ({ patternType:'solid', fgColor:{ rgb } });
+  const fnt   = opts => ({ name:'Arial', ...opts });
+  const aln   = (h, v, wrap) => ({ horizontal:h, vertical:v||'center', wrapText:!!wrap });
+  const bdr   = () => ({
+    top:{style:'thin',color:{rgb:'CCCCCC'}}, bottom:{style:'thin',color:{rgb:'CCCCCC'}},
+    left:{style:'thin',color:{rgb:'CCCCCC'}}, right:{style:'thin',color:{rgb:'CCCCCC'}}
+  });
+  const mk = arr => arr.map(r => XLSX.utils.decode_range(r));
 
-  // ── Sheet 1: Executive Summary ──────────────────────────────────────────
-  const s1data = [
-    ['REMINA — ROI Analysis Report', '', '', ''],
-    [`Prepared for: ${company}  |  Contact: ${email}  |  Name: ${name}`, '', '', ''],
-    ['Love. Care. Memory. — $100 per resident per month', '', '', ''],
-    ['', '', '', ''],
-    ['KEY RESULTS', '', '', ''],
-    ['Annual ROI Multiple', L.roi.toFixed(1)+'x', '', ''],
-    ['Net Annual Benefit', money(L.net), '', ''],
-    ['Total Annual Benefit', money(L.totB), '', ''],
-    ['Remina Annual Cost', money(L.remA), '', ''],
-    ['Payback Period (days)', L.days, '', ''],
-    ['', '', '', ''],
-    ['YOUR INPUTS', '', '', ''],
-    ['Memory care residents', L.res, '', ''],
-    ['Monthly fee per resident ($)', L.rate, '', ''],
-    ['Current occupancy (%)', L.occ+'%', '', ''],
-    ['Average length of stay (months)', L.los, '', ''],
-    ['Current antipsychotic rate (%)', L.prnRate+'%', '', ''],
-    ['Monthly caregiver turnover (%)', L.turnover+'%', '', ''],
-    ['', '', '', ''],
-    ['BENEFIT BREAKDOWN', 'Annual Value ($)', 'Methodology', 'Source'],
-    ['Length of stay revenue gain', money(L.losG), `${L.adm.toFixed(1)} admissions/yr × 1.5 extra months × $${L.rate.toLocaleString()}`, 'NPI peer-reviewed literature'],
-    ['Occupancy improvement revenue', money(L.occG), `+${L.occU} pts on ${L.res} residents`, 'Family referrals + inspection uplift'],
-    ['Caregiver turnover cost saved', money(L.turS), `${L.exits.toFixed(1)} exits/yr × 15% reduction × $3,500`, 'SHRM senior living benchmark'],
-    ['PRN medication cost reduction', money(L.prnS), `${L.res} res × 2.5 events/mo × $85 × 24%`, 'Remina pilot data (16.2%→12.4%)'],
-    ['Inspection deficiency avoided', 5000, 'Conservative — 1 deficiency/year', 'CMS penalty range $5k–$50k'],
-    ['TOTAL BENEFIT', money(L.totB), '', ''],
-    ['Remina Annual Cost', -money(L.remA), `${L.res} res × $100/mo × 12`, 'Remina founding partner rate'],
-    ['NET ANNUAL BENEFIT', money(L.net), '', ''],
-    ['', '', '', ''],
-    ['BREAK-EVEN', '', '', ''],
-    [`If just ${Math.ceil(L.cover)} residents each stay 1 extra month, Remina pays for itself for the entire year.`, '', '', ''],
-    [`That is ${(Math.ceil(L.cover)/L.res*100).toFixed(1)}% of your ${L.res} residents.`, '', '', ''],
-    ['', '', '', ''],
-    ['Remina — Love. Care. Memory. | hello@remina.ai | remina.ai | Argentum Nashville May 18–20 2026', '', '', ''],
+  function sc(ws, addr, val, s, z) {
+    ws[addr] = { v:val, t:typeof val==='number'?'n':'s', s:s||{} };
+    if (z) ws[addr].z = z;
+  }
+  function fc(ws, addr, f, v, s, z) {
+    ws[addr] = { t:'n', f, v, s:s||{} };
+    if (z) ws[addr].z = z;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // SHEET 1 — Executive Summary
+  // ═══════════════════════════════════════════════════════════
+  const ws1 = {};
+  const E = {
+    titleGreen : { fill:fill('2DBD7E'), font:fnt({bold:true,sz:16,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    subGreen   : { fill:fill('1A9460'), font:fnt({italic:true,sz:10,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    spacer     : { fill:fill('E8F8F0') },
+    tagline    : { font:fnt({italic:true,sz:10,color:{rgb:'1A9460'}}), alignment:aln('left','center') },
+    kpiGN      : { fill:fill('E8F8F0'), font:fnt({bold:true,sz:20,color:{rgb:'1A9460'}}), alignment:aln('center','center') },
+    kpiAN      : { fill:fill('FFF8E1'), font:fnt({bold:true,sz:20,color:{rgb:'633806'}}), alignment:aln('center','center') },
+    kpiGL      : { fill:fill('E8F8F0'), font:fnt({sz:9,color:{rgb:'1A9460'}}), alignment:aln('center','center') },
+    kpiAL      : { fill:fill('FFF8E1'), font:fnt({sz:9,color:{rgb:'633806'}}), alignment:aln('center','center') },
+    secDark    : { fill:fill('1C1C1C'), font:fnt({bold:true,sz:11,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    secGreen   : { fill:fill('1A9460'), font:fnt({bold:true,sz:11,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    inLbl      : o => ({ fill:fill(o?'F5F5F5':'FFFFFF'), font:fnt({sz:10,color:{rgb:'444444'}}), border:bdr(), alignment:aln('left','center') }),
+    inVal      : o => ({ fill:fill(o?'F5F5F5':'FFFFFF'), font:fnt({bold:true,sz:11,color:{rgb:'1C1C1C'}}), border:bdr(), alignment:aln('right','center') }),
+    inUnt      : o => ({ fill:fill(o?'F5F5F5':'FFFFFF'), font:fnt({sz:9,color:{rgb:'888888'}}), border:bdr(), alignment:aln('left','center') }),
+    benLbl     : { fill:fill('FFFFFF'), font:fnt({sz:10,color:{rgb:'1C1C1C'}}), alignment:aln('left','center') },
+    benVal     : { fill:fill('FFFFFF'), font:fnt({sz:10,color:{rgb:'1C1C1C'}}), alignment:aln('right','center') },
+    benNot     : { fill:fill('FFFFFF'), font:fnt({italic:true,sz:8,color:{rgb:'888888'}}), alignment:aln('left','center',true) },
+    totLbl     : { fill:fill('F5F5F5'), font:fnt({bold:true,sz:11,color:{rgb:'1C1C1C'}}), alignment:aln('left','center') },
+    totVal     : { fill:fill('F5F5F5'), font:fnt({bold:true,sz:12,color:{rgb:'1A9460'}}), alignment:aln('right','center') },
+    cstLbl     : { fill:fill('FFFFFF'), font:fnt({sz:10,color:{rgb:'1C1C1C'}}), alignment:aln('left','center') },
+    cstVal     : { fill:fill('FFFFFF'), font:fnt({sz:10,color:{rgb:'B71C1C'}}), alignment:aln('right','center') },
+    netLbl     : { fill:fill('E8F8F0'), font:fnt({bold:true,sz:11,color:{rgb:'1A9460'}}), alignment:aln('left','center') },
+    netVal     : { fill:fill('E8F8F0'), font:fnt({bold:true,sz:12,color:{rgb:'1A9460'}}), alignment:aln('right','center') },
+    payBanner  : { fill:fill('2DBD7E'), font:fnt({bold:true,sz:11,color:{rgb:'FFFFFF'}}), alignment:aln('center','center',true) },
+    payNote    : { fill:fill('E8F8F0'), font:fnt({italic:true,sz:10,color:{rgb:'1A9460'}}), alignment:aln('left','center',true) },
+    footer     : { font:fnt({italic:true,sz:9,color:{rgb:'AAAAAA'}}), alignment:aln('center','center') },
+  };
+
+  sc(ws1,'B2','REMINA – ROI Analysis Report', E.titleGreen);
+  sc(ws1,'B3',`Prepared for: ${company}  |  Contact: ${email}`, E.subGreen);
+  sc(ws1,'B4','', E.spacer);
+  sc(ws1,'B5','Love. Care. Memory. – $100 per resident per month', E.tagline);
+  sc(ws1,'B7', L.roi.toFixed(1)+'x', E.kpiGN);
+  sc(ws1,'D7', money(L.net), E.kpiAN, '$#,##0');
+  sc(ws1,'B9','Annual ROI Multiple', E.kpiGL);
+  sc(ws1,'D9','Net Annual Benefit', E.kpiAL);
+  sc(ws1,'B11','Your Community Inputs', E.secDark);
+
+  [
+    ['Memory care residents',      L.res,                          'residents'],
+    ['Monthly fee per resident',   '$'+money(L.rate).toLocaleString(), '$/month'],
+    ['Current occupancy rate',     L.occ+'%',                      ''],
+    ['Average length of stay',     L.los+' months',                ''],
+    ['Current antipsychotic rate', L.prnRate+'%',                  ''],
+    ['Monthly caregiver turnover', L.turnover+'%/mo',              ''],
+  ].forEach(([lbl, val, unit], i) => {
+    const r = 12+i, o = i%2===0;
+    sc(ws1,`B${r}`, lbl,  E.inLbl(o));
+    sc(ws1,`D${r}`, val,  E.inVal(o));
+    if (unit) sc(ws1,`E${r}`, unit, E.inUnt(o));
+  });
+
+  sc(ws1,'B19','ROI Results – Annual Impact', E.secGreen);
+
+  [
+    ['Length of stay revenue gain',   money(L.losG), `${L.adm.toFixed(1)} admissions/yr × 1.5 extra months × $${money(L.rate).toLocaleString()}`],
+    ['Occupancy improvement revenue', money(L.occG), `+${L.occU} pts uplift on ${L.res} residents`],
+    ['Caregiver turnover cost saved', money(L.turS), `${L.exits.toFixed(1)} exits/yr, 15% reduction × $3,500`],
+    ['PRN medication cost reduction', money(L.prnS), `${L.res} res × 2.5 events/mo × $85 × 24% × 12`],
+    ['Inspection deficiency avoided', 5000,           'Conservative — 1 deficiency/year'],
+  ].forEach(([lbl, val, note], i) => {
+    const r = 20+i;
+    sc(ws1,`B${r}`, lbl,  E.benLbl);
+    sc(ws1,`D${r}`, val,  E.benVal, '$#,##0');
+    sc(ws1,`E${r}`, note, E.benNot);
+  });
+
+  sc(ws1,'B25','TOTAL BENEFIT',      E.totLbl); sc(ws1,'D25', money(L.totB),  E.totVal, '$#,##0');
+  sc(ws1,'B26','Remina Annual Cost', E.cstLbl); sc(ws1,'D26',-money(L.remA), E.cstVal, '$#,##0;($#,##0)');
+  sc(ws1,'B27','NET ANNUAL BENEFIT', E.netLbl); sc(ws1,'D27', money(L.net),  E.netVal, '$#,##0');
+
+  sc(ws1,'B29',
+    `PAYBACK PERIOD: ${L.days} days  |  Just ${Math.ceil(L.cover)} resident-months cover the full annual cost  |  ROI: ${L.roi.toFixed(1)}x`,
+    E.payBanner);
+  sc(ws1,'B30',
+    `If just ${Math.ceil(L.cover)} residents stay one extra month, Remina pays for itself completely for the year.`,
+    E.payNote);
+  sc(ws1,'B32',
+    'Remina — Love. Care. Memory.  |  hello@remina.ai  |  remina.ai  |  Argentum Nashville May 18–20 2026',
+    E.footer);
+
+  ws1['!ref']    = 'A1:F32';
+  ws1['!merges'] = mk([
+    'B2:E2','B3:E3','B4:E4','B5:E5',
+    'B7:C8','D7:E8','B9:C9','D9:E9',
+    'B11:E11',
+    'B12:C12','B13:C13','B14:C14','B15:C15','B16:C16','B17:C17',
+    'B19:E19',
+    'B20:C20','B21:C21','B22:C22','B23:C23','B24:C24',
+    'B25:C25','B26:C26','B27:C27',
+    'B29:E29','B30:E30','B32:E32'
+  ]);
+  ws1['!cols'] = [{wch:3},{wch:32},{wch:22},{wch:18},{wch:20},{wch:4}];
+  ws1['!rows'] = [
+    {hpt:7.5},{hpt:36},{hpt:24},{hpt:12},{hpt:24},{hpt:10},
+    {hpt:36},{hpt:36},{hpt:24},{hpt:10},{hpt:24},
+    {hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:21},
+    {hpt:10},{hpt:24},
+    {hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:21},
+    {hpt:21},{hpt:21},{hpt:21},
+    {hpt:10},{hpt:28},{hpt:28},{hpt:10},{hpt:24}
   ];
-  const ws1 = XLSX.utils.aoa_to_sheet(s1data);
-  ws1['!cols'] = [{wch:48},{wch:22},{wch:52},{wch:36}];
   XLSX.utils.book_append_sheet(wb, ws1, 'Executive Summary');
 
-  // ── Sheet 2: KPI Dashboard ───────────────────────────────────────────────
-  const s2data = [
-    ['REMINA KPI IMPACT DASHBOARD', '', '', '', ''],
-    ['Before vs After — 90-day pilot outcomes', '', '', '', ''],
-    ['', '', '', '', ''],
-    ['KPI', 'Before Remina', 'After Remina (90 days)', 'Improvement', 'Source'],
-    ['Length of Stay', `${L.los} months`, `${(L.los+1.5).toFixed(1)} months`, '+1.5 months', 'NPI peer-reviewed literature'],
-    ['Antipsychotic Rate', `${L.prnRate}%`, `${(L.prnRate*0.76).toFixed(1)}%`, '-24%', 'Remina pilot data'],
-    ['Occupancy Rate', `${L.occ}%`, `${Math.min(98,L.occ+L.occU)}%`, `+${L.occU} pts`, 'Family referrals + inspection'],
-    ['Caregiver Monthly Turnover', `${L.turnover}%`, `${(L.turnover*0.85).toFixed(1)}%`, '-15%', 'SHRM senior living benchmark'],
-    ['PRN Events / Resident / Month', '2.5', '1.9', '-24%', 'Remina pilot data'],
-    ['Monthly Revenue', `$${money(L.res*L.rate*L.occ/100).toLocaleString()}`, `$${money(L.res*L.rate*Math.min(L.occ+L.occU,98)/100).toLocaleString()}`, `+$${money(L.occG/12).toLocaleString()}/mo`, 'Calculated'],
-    ['', '', '', '', ''],
-    ['All assumptions are conservative and sourced from peer-reviewed NPI literature and SHRM benchmarks.', '', '', '', ''],
-  ];
-  const ws2 = XLSX.utils.aoa_to_sheet(s2data);
-  ws2['!cols'] = [{wch:32},{wch:22},{wch:26},{wch:18},{wch:38}];
-  XLSX.utils.book_append_sheet(wb, ws2, 'KPI Dashboard');
+  // ═══════════════════════════════════════════════════════════
+  // SHEET 2 — Detailed Model
+  // ═══════════════════════════════════════════════════════════
+  const ws2 = {};
+  const M = {
+    title   : { fill:fill('2DBD7E'), font:fnt({bold:true,sz:14,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    secDark : { fill:fill('1C1C1C'), font:fnt({bold:true,sz:11,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    secGrn  : { fill:fill('1A9460'), font:fnt({bold:true,sz:11,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    inLbl   : { fill:fill('F5F5F5'), font:fnt({sz:10,color:{rgb:'444444'}}), border:bdr(), alignment:aln('left','center') },
+    inVal   : { fill:fill('FFFFF0'), font:fnt({bold:true,sz:11,color:{rgb:'0000FF'}}), border:bdr(), alignment:aln('right','center') },
+    outLbl  : { fill:fill('FFFFFF'), font:fnt({sz:10,color:{rgb:'1C1C1C'}}), border:bdr(), alignment:aln('left','center') },
+    outVal  : { fill:fill('FFFFFF'), font:fnt({sz:10,color:{rgb:'1C1C1C'}}), border:bdr(), alignment:aln('right','center') },
+    totLbl  : { fill:fill('F5F5F5'), font:fnt({bold:true,sz:10,color:{rgb:'1C1C1C'}}), border:bdr(), alignment:aln('left','center') },
+    totVal  : { fill:fill('F5F5F5'), font:fnt({bold:true,sz:11,color:{rgb:'1C1C1C'}}), border:bdr(), alignment:aln('right','center') },
+    netLbl  : { fill:fill('E8F8F0'), font:fnt({bold:true,sz:10,color:{rgb:'1A9460'}}), border:bdr(), alignment:aln('left','center') },
+    netVal  : { fill:fill('E8F8F0'), font:fnt({bold:true,sz:11,color:{rgb:'1A9460'}}), border:bdr(), alignment:aln('right','center') },
+    roiLbl  : { fill:fill('F5F5F5'), font:fnt({bold:true,sz:10,color:{rgb:'1C1C1C'}}), border:bdr(), alignment:aln('left','center') },
+    roiVal  : { fill:fill('F5F5F5'), font:fnt({bold:true,sz:11,color:{rgb:'1C1C1C'}}), border:bdr(), alignment:aln('right','center') },
+  };
 
-  // ── Sheet 3: Scenario Planner ────────────────────────────────────────────
-  const scenarios = [0.75, 1.0, 1.25, 1.5, 2.0];
-  const s3hdr = ['Scenario', 'LOS Improvement (months)', 'Annual Benefit ($)', 'Net Benefit ($)', 'ROI Multiple', 'Payback (days)'];
-  const s3rows = scenarios.map(mult => {
-    const lg  = L.adm * (1.5*mult) * L.rate;
-    const tot = lg + L.occG + L.turS + L.prnS + 5000;
-    const net = tot - L.remA;
-    return [
-      mult===1.0 ? 'Base case (current)' : mult<1 ? 'Conservative' : `Optimistic ×${mult}`,
-      (1.5*mult).toFixed(2),
-      money(tot),
-      money(net),
-      (tot/L.remA).toFixed(2)+'x',
-      Math.round((L.remA/tot)*365)
-    ];
+  sc(ws2,'B1','REMINA — Detailed Financial Model', M.title);
+  sc(ws2,'B3','INPUTS', M.secDark);
+
+  [
+    ['Number of memory care residents', L.res,          null   ],
+    ['Monthly fee per resident ($)',    L.rate,         '$#,##0'],
+    ['Current occupancy rate',          L.occ/100,      '0.0%' ],
+    ['Average length of stay (months)', L.los,          '0.0'  ],
+    ['Current antipsychotic rate',      L.prnRate/100,  '0.0%' ],
+    ['Monthly caregiver turnover',      L.turnover/100, '0.0%' ],
+  ].forEach(([lbl, val, z], i) => {
+    const r = 4+i;
+    sc(ws2,`B${r}`, lbl, M.inLbl);
+    sc(ws2,`C${r}`, val, M.inVal, z);
   });
-  const ws3 = XLSX.utils.aoa_to_sheet([s3hdr, ...s3rows]);
-  ws3['!cols'] = [{wch:26},{wch:26},{wch:22},{wch:20},{wch:16},{wch:16}];
-  XLSX.utils.book_append_sheet(wb, ws3, 'Scenario Planner');
+
+  sc(ws2,'B11','CALCULATED OUTPUTS', M.secGrn);
+
+  ['Remina monthly cost','Remina annual cost','Annual admissions','LOS revenue gain',
+   'Occupancy uplift (pts)','Occupancy revenue gain','Caregiver count','Annual caregiver exits',
+   'Turnover saving','PRN cost saving','Inspection saving'
+  ].forEach((lbl, i) => sc(ws2,`B${12+i}`, lbl, M.outLbl));
+
+  [
+    ['C12','C4*100',                           L.res*100,  '$#,##0'],
+    ['C13','C4*100*12',                        L.remA,     '$#,##0'],
+    ['C14','C4/C7*12',                         L.adm,      '0.0'  ],
+    ['C15','(C4/C7*12)*1.5*C5',               L.losG,     '$#,##0'],
+    ['C16','MIN(0.98-C6,0.03)',                L.occU/100, '0.0%' ],
+    ['C17','MIN(0.98-C6,0.03)*C4*C5*12',      L.occG,     '$#,##0'],
+    ['C18','ROUND(C4*0.4,0)',                  L.cgC,      '0'    ],
+    ['C19','ROUND(C4*0.4,0)*C9*12',           L.exits,    '0.0'  ],
+    ['C20','ROUND(C4*0.4,0)*C9*12*0.15*3500', L.turS,     '$#,##0'],
+    ['C21','C4*2.5*85*0.24*12',               L.prnS,     '$#,##0'],
+    ['C22','5000',                             5000,       '$#,##0'],
+  ].forEach(([addr, f, v, z]) => fc(ws2, addr, f, v, M.outVal, z));
+
+  sc(ws2,'B23','TOTAL BENEFIT',         M.totLbl); fc(ws2,'C23','C15+C17+C20+C21+C22',    L.totB, M.totVal,'$#,##0');
+  sc(ws2,'B24','NET ANNUAL BENEFIT',    M.netLbl); fc(ws2,'C24','C23-C13',                 L.net,  M.netVal,'$#,##0');
+  sc(ws2,'B25','ROI multiple',          M.roiLbl); fc(ws2,'C25','C23/C13',                 L.roi,  M.roiVal,'0.0"x"');
+  sc(ws2,'B26','Payback period (days)', M.roiLbl); fc(ws2,'C26','ROUND(C13/C23*365,0)',    L.days, M.roiVal,'0');
+
+  ws2['!ref']    = 'A1:G26';
+  ws2['!merges'] = mk([
+    'B1:F1','B3:F3',
+    'C4:D4','C5:D5','C6:D6','C7:D7','C8:D8','C9:D9',
+    'B11:F11'
+  ]);
+  ws2['!cols'] = [{wch:3},{wch:36},{wch:18},{wch:18},{wch:4},{wch:4},{wch:4}];
+  ws2['!rows'] = [
+    {hpt:30},{hpt:9.75},
+    {hpt:19.5},{hpt:19.5},{hpt:19.5},{hpt:19.5},{hpt:19.5},{hpt:19.5},{hpt:19.5},
+    {hpt:9.75},{hpt:21.75},
+    {hpt:18},{hpt:18},{hpt:18},{hpt:18},{hpt:18},{hpt:18},{hpt:18},{hpt:18},{hpt:18},{hpt:18},{hpt:18},
+    {hpt:19.5},{hpt:19.5},{hpt:19.5},{hpt:19.5}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Detailed Model');
+
+  // ═══════════════════════════════════════════════════════════
+  // SHEET 3 — KPI Dashboard
+  // ═══════════════════════════════════════════════════════════
+  const ws3 = {};
+  const K = {
+    title  : { fill:fill('1C1C1C'), font:fnt({bold:true,sz:14,color:{rgb:'FFFFFF'}}), alignment:aln('left','center') },
+    subHdr : { fill:fill('F5F5F5'), font:fnt({bold:true,sz:10,color:{rgb:'444444'}}), alignment:aln('left','center') },
+    colHdr : { fill:fill('1A9460'), font:fnt({bold:true,sz:10,color:{rgb:'FFFFFF'}}), border:bdr(), alignment:aln('center','center') },
+    green  : { fill:fill('E8F8F0'), font:fnt({sz:10,color:{rgb:'1A9460'}}), border:bdr(), alignment:aln('left','center') },
+    greenV : { fill:fill('E8F8F0'), font:fnt({bold:true,sz:11,color:{rgb:'1A9460'}}), border:bdr(), alignment:aln('center','center') },
+    amber  : { fill:fill('FFF8E1'), font:fnt({sz:10,color:{rgb:'633806'}}), border:bdr(), alignment:aln('left','center') },
+    amberV : { fill:fill('FFF8E1'), font:fnt({bold:true,sz:11,color:{rgb:'633806'}}), border:bdr(), alignment:aln('center','center') },
+    pink   : { fill:fill('FDE8F1'), font:fnt({sz:10,color:{rgb:'880E4F'}}), border:bdr(), alignment:aln('left','center') },
+    pinkV  : { fill:fill('FDE8F1'), font:fnt({bold:true,sz:11,color:{rgb:'880E4F'}}), border:bdr(), alignment:aln('center','center') },
+    imprvt : { fill:fill('FFFFFF'), font:fnt({bold:true,sz:10,color:{rgb:'555555'}}), border:bdr(), alignment:aln('center','center') },
+    source : { fill:fill('FFFFFF'), font:fnt({italic:true,sz:10,color:{rgb:'555555'}}), border:bdr(), alignment:aln('left','center') },
+    disc   : { font:fnt({italic:true,sz:9,color:{rgb:'888888'}}), alignment:aln('left','center',true) },
+  };
+
+  sc(ws3,'B1','Remina KPI Impact Dashboard', K.title);
+  sc(ws3,'B3','Before vs After — 90-day pilot outcomes', K.subHdr);
+  ['KPI','Before Remina','After Remina (90 days)','Improvement','Source'].forEach((h, i) => {
+    sc(ws3, String.fromCharCode(66+i)+'4', h, K.colHdr);
+  });
+
+  [
+    ['green','Length of Stay',             `${L.los} months`,                                                        `${(L.los+1.5).toFixed(1)} months`,                                   '+1.5 months',                     'NPI peer-reviewed literature'      ],
+    ['amber','Antipsychotic Rate',          `${L.prnRate}%`,                                                          `${(L.prnRate*0.76).toFixed(1)}%`,                                    '-24%',                            'Remina pilot data'                 ],
+    ['green','Occupancy Rate',              `${L.occ}%`,                                                              `${Math.min(98,L.occ+L.occU)}%`,                                      `+${L.occU} pts`,                  'Family referrals + inspection'     ],
+    ['pink', 'Caregiver Monthly Turnover',  `${L.turnover}%/mo`,                                                      `${(L.turnover*0.85).toFixed(1)}%/mo`,                                '-15%',                            'SHRM senior living HR benchmark'   ],
+    ['amber','PRN Events / Resident / Mo',  '2.5/mo',                                                                 '1.9/mo',                                                             '-24%',                            'Remina pilot data'                 ],
+    ['green','Monthly Revenue',             '$'+money(L.res*L.rate*L.occ/100).toLocaleString(),                       '$'+money(L.res*L.rate*Math.min(L.occ+L.occU,98)/100).toLocaleString(),'+$'+money(L.occG/12).toLocaleString()+'/mo','Calculated from occupancy model'],
+  ].forEach(([theme, kpi, before, after, imprv, src], i) => {
+    const r = 5+i;
+    sc(ws3,`B${r}`, kpi,   K[theme]);
+    sc(ws3,`C${r}`, before,K[theme+'V']);
+    sc(ws3,`D${r}`, after, K[theme+'V']);
+    sc(ws3,`E${r}`, imprv, K.imprvt);
+    sc(ws3,`F${r}`, src,   K.source);
+  });
+
+  sc(ws3,'B13',
+    'All assumptions are conservative and sourced from peer-reviewed NPI literature, Remina pilot data, and senior living industry HR benchmarks (SHRM). Actual results may exceed these projections.',
+    K.disc);
+
+  ws3['!ref']    = 'A1:G13';
+  ws3['!merges'] = mk(['B1:F1','B3:F3','B13:F13']);
+  ws3['!cols'] = [{wch:3},{wch:28},{wch:22},{wch:24},{wch:18},{wch:38},{wch:4}];
+  ws3['!rows'] = [
+    {hpt:30},{hpt:7.5},{hpt:19.5},{hpt:21.75},
+    {hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:21},{hpt:21},
+    {hpt:10},{hpt:10},{hpt:31.5}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws3, 'KPI Dashboard');
 
   const fname = `Remina_ROI_${company.replace(/[^a-zA-Z0-9]/g,'_').substring(0,30)}.xlsx`;
   XLSX.writeFile(wb, fname);
 }
 
 calc();
+
+</script>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <svg class="logo-svg-sm" viewBox="0 0 140 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(12,5)">
+        <path d="M18 6 Q21 2 24 6" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <path d="M26 10 Q31 8 30 14" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <path d="M27 20 Q32 22 28 26" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <path d="M18 28 Q20 33 14 32" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <path d="M8 26 Q4 29 4 24" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <path d="M5 16 Q0 14 3 10" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <path d="M8 6 Q6 2 10 3" stroke="#2DBD7E" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <line x1="16" y1="4" x2="16" y2="8" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="24" y1="7" x2="22" y2="11" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="28" y1="15" x2="24" y2="16" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="24" y1="24" x2="21" y2="21" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="16" y1="28" x2="16" y2="24" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="8" y1="24" x2="11" y2="21" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="4" y1="15" x2="8" y2="16" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="8" y1="7" x2="10" y2="11" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="4.5" fill="#E8276B"/>
+        <line x1="16" y1="20.5" x2="16" y2="34" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <text x="52" y="38" font-family="'Nunito',sans-serif" font-size="22" font-weight="700" fill="rgba(255,255,255,0.8)" letter-spacing="-0.5">REMINA</text>
+      <text x="52" y="52" font-family="'Nunito',sans-serif" font-size="9" font-weight="600">
+        <tspan fill="#2DBD7E">Love.</tspan>
+        <tspan fill="#F5A623"> Care.</tspan>
+        <tspan fill="#E8276B"> Memory.</tspan>
+      </text>
+    </svg>
+  </div>
+  <div class="footer-links">
+    <a href="https://linkedin.com/company/remina" target="_blank">LinkedIn</a>
+    <a href="https://www.instagram.com/remina_care?igsh=MWlnMnFscDl5M3cxZQ==" target="_blank">Instagram</a>
+    <a href="mailto:hello@remina.ai" class="highlight">hello@remina.ai</a>
+    <a href="https://calendly.com/remina-demo" target="_blank" class="highlight">Book a demo</a>
+  </div>
+</footer>
+
+<script>
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
 </script>
 </body>
 </html>
